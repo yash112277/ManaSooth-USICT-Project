@@ -21,7 +21,7 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
           <Card className="p-6">
             <CardContent className="space-y-4">
               <img
@@ -42,6 +42,23 @@ export default function Home() {
           <Card className="p-6">
             <CardContent className="space-y-4">
               <img
+                src="https://images.unsplash.com/photo-1573497620053-ea5300f94f21"
+                alt="Professional consultation"
+                className="rounded-lg w-full h-48 object-cover mb-4"
+              />
+              <h2 className="text-2xl font-semibold">Professional Consultation</h2>
+              <p className="text-muted-foreground">
+                Book a session with our mental health professionals for personalized guidance and support.
+              </p>
+              <Link href="/consultation">
+                <Button className="w-full" variant="secondary">Book Consultation</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="p-6">
+            <CardContent className="space-y-4">
+              <img
                 src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8"
                 alt="Support resources"
                 className="rounded-lg w-full h-48 object-cover mb-4"
@@ -51,7 +68,7 @@ export default function Home() {
                 Access helpful resources, emergency contacts, and professional mental health services.
               </p>
               <Link href="/resources">
-                <Button variant="secondary" className="w-full">
+                <Button variant="outline" className="w-full">
                   View Resources
                 </Button>
               </Link>

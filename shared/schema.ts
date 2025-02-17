@@ -16,13 +16,48 @@ export const assessments = pgTable("assessments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const consultations = pgTable("consultations", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  professionalId: text("professional_id").notNull(),
+  dateTime: timestamp("date_time").notNull(),
+  status: text("status").notNull().default('pending'),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const professionals = pgTable("professionals", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  name: text("name").notNull(),
+  title: text("title").notNull(),
+  specialization: text("specialization").notNull(),
+  bio: text("bio"),
+  availability: jsonb("availability").$type<AvailabilitySlot[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertConsultationSchema = createInsertSchema(consultations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProfessionalSchema = createInsertSchema(professionals).omit({
   id: true,
   createdAt: true,
 });
 
 export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
 export type Assessment = typeof assessments.$inferSelect;
+export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+export type Consultation = typeof consultations.$inferSelect;
+export type InsertProfessional = z.infer<typeof insertProfessionalSchema>;
+export type Professional = typeof professionals.$inferSelect;
 
 export const messageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -74,3 +109,9 @@ export const questionnaireResponseSchema = z.object({
 });
 
 export type QuestionnaireResponse = z.infer<typeof questionnaireResponseSchema>;
+
+export type AvailabilitySlot = {
+  day: string;
+  startTime: string;
+  endTime: string;
+};
