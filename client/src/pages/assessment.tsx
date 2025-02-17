@@ -5,11 +5,16 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Message } from "@shared/schema";
+import { Message, type QuestionnaireResponse } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { Questionnaire } from "@/components/Questionnaire";
+
+type AssessmentStage = "questionnaire" | "conversation" | "complete";
 
 export default function Assessment() {
+  const [stage, setStage] = useState<AssessmentStage>("questionnaire");
+  const [questionnaireResponses, setQuestionnaireResponses] = useState<QuestionnaireResponse | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const { toast } = useToast();
@@ -19,6 +24,7 @@ export default function Assessment() {
       const res = await apiRequest("POST", "/api/chat", {
         message,
         history: messages,
+        questionnaireResponses,
       });
       return res.json();
     },
@@ -47,6 +53,11 @@ export default function Assessment() {
     },
   });
 
+  const handleQuestionnaireComplete = (responses: QuestionnaireResponse) => {
+    setQuestionnaireResponses(responses);
+    setStage("conversation");
+  };
+
   const handleSend = () => {
     if (!input.trim()) return;
 
@@ -59,6 +70,20 @@ export default function Assessment() {
     chatMutation.mutate(input);
     setInput("");
   };
+
+  if (stage === "questionnaire") {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6 text-center">Mental Health Assessment</h1>
+          <p className="text-muted-foreground mb-8 text-center">
+            Please complete these standardized questionnaires. Your responses will help us better understand your mental health status.
+          </p>
+          <Questionnaire onComplete={handleQuestionnaireComplete} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">

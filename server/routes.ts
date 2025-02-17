@@ -10,8 +10,8 @@ export async function registerRoutes(app: Express) {
 
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, history } = req.body;
-      const response = await generateResponse(message, history);
+      const { message, history, questionnaireResponses } = req.body;
+      const response = await generateResponse(message, history, questionnaireResponses);
       res.json({ response });
     } catch (err) {
       const error = err as Error;
@@ -22,6 +22,17 @@ export async function registerRoutes(app: Express) {
   app.post("/api/assessments", async (req, res) => {
     try {
       const assessment = insertAssessmentSchema.parse(req.body);
+
+      // Calculate scores and analysis if questionnaire responses are provided
+      if (assessment.who5Responses || assessment.gad7Responses || assessment.phq9Responses) {
+        const analysis = await analyzeMentalHealth({
+          who5: assessment.who5Responses || {},
+          gad7: assessment.gad7Responses || {},
+          phq9: assessment.phq9Responses || {},
+        });
+        assessment.aiAnalysis = analysis.summary;
+      }
+
       const result = await storage.createAssessment(assessment);
       res.json(result);
     } catch (err) {
