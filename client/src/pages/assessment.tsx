@@ -10,7 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Questionnaire } from "@/components/Questionnaire";
 
-type AssessmentStage = "questionnaire" | "conversation" | "complete";
+type AssessmentStage = "questionnaire" | "scores" | "conversation";
 
 export default function Assessment() {
   const [stage, setStage] = useState<AssessmentStage>("questionnaire");
@@ -53,8 +53,22 @@ export default function Assessment() {
     },
   });
 
+  const calculateScores = (responses: QuestionnaireResponse) => {
+    const who5 = Object.values(responses.who5).reduce((sum, val) => sum + val, 0) * 4;
+    const gad7 = Object.values(responses.gad7).reduce((sum, val) => sum + val, 0);
+    const phq9 = Object.values(responses.phq9).reduce((sum, val) => sum + val, 0);
+    return { who5, gad7, phq9 };
+  };
+
   const handleQuestionnaireComplete = (responses: QuestionnaireResponse) => {
     setQuestionnaireResponses(responses);
+    setStage("scores");
+    // Automatically start the conversation with AI about the scores
+    const scores = calculateScores(responses);
+    chatMutation.mutate("I've completed the assessment questionnaires. Could you help me understand my results?");
+  };
+
+  const handleStartConversation = () => {
     setStage("conversation");
   };
 
@@ -81,6 +95,42 @@ export default function Assessment() {
           </p>
           <Questionnaire onComplete={handleQuestionnaireComplete} />
         </div>
+      </div>
+    );
+  }
+
+  if (stage === "scores") {
+    const scores = questionnaireResponses ? calculateScores(questionnaireResponses) : null;
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="p-6">
+            <h2 className="text-2xl font-bold mb-6 text-center">Your Assessment Results</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">WHO-5 Well-Being Index</h3>
+                <p className="text-muted-foreground">Score: {scores?.who5}%</p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">GAD-7 Anxiety Assessment</h3>
+                <p className="text-muted-foreground">Score: {scores?.gad7}/21</p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">PHQ-9 Depression Assessment</h3>
+                <p className="text-muted-foreground">Score: {scores?.phq9}/27</p>
+              </div>
+            </div>
+            <div className="mt-6">
+              <p className="text-sm text-muted-foreground mb-4">
+                Our AI assistant will help you understand these results and provide personalized support.
+              </p>
+              <Button onClick={handleStartConversation} className="w-full">
+                Continue to Conversation
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

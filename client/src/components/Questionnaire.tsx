@@ -14,6 +14,9 @@ interface QuestionnaireProps {
     who5: Record<string, number>;
     gad7: Record<string, number>;
     phq9: Record<string, number>;
+    who5Score: number;
+    gad7Score: number;
+    phq9Score: number;
   }) => void;
 }
 
@@ -28,6 +31,32 @@ export function Questionnaire({ onComplete }: QuestionnaireProps) {
     gad7: {},
     phq9: {},
   });
+
+  const calculateScores = () => {
+    const who5Score = Object.values(responses.who5).reduce((sum, val) => sum + val, 0) * 4;
+    const gad7Score = Object.values(responses.gad7).reduce((sum, val) => sum + val, 0);
+    const phq9Score = Object.values(responses.phq9).reduce((sum, val) => sum + val, 0);
+    return { who5Score, gad7Score, phq9Score };
+  };
+
+  const getScoreInterpretation = (score: number, type: QuestionnaireType) => {
+    if (type === 'who5') {
+      if (score < 28) return "Probable depression";
+      if (score < 50) return "Low well-being";
+      return "Good well-being";
+    } else if (type === 'gad7') {
+      if (score >= 15) return "Severe anxiety";
+      if (score >= 10) return "Moderate anxiety";
+      if (score >= 5) return "Mild anxiety";
+      return "Minimal anxiety";
+    } else {
+      if (score >= 20) return "Severe depression";
+      if (score >= 15) return "Moderately severe depression";
+      if (score >= 10) return "Moderate depression";
+      if (score >= 5) return "Mild depression";
+      return "Minimal depression";
+    }
+  };
 
   const getCurrentQuestions = () => {
     switch (currentType) {
@@ -100,7 +129,8 @@ export function Questionnaire({ onComplete }: QuestionnaireProps) {
     } else if (currentType === "gad7") {
       setCurrentType("phq9");
     } else {
-      onComplete(responses);
+      const scores = calculateScores();
+      onComplete({ ...responses, ...scores });
     }
   };
 
@@ -109,7 +139,7 @@ export function Questionnaire({ onComplete }: QuestionnaireProps) {
       <CardContent className="p-6">
         <h2 className="text-2xl font-bold mb-4">{getQuestionnaireTitle()}</h2>
         <Progress value={getCurrentProgress()} className="mb-6" />
-        
+
         <div className="space-y-6">
           {getCurrentQuestions().map((question, index) => (
             <div key={question} className="space-y-2">
