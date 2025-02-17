@@ -4,8 +4,12 @@ import { storage } from "./storage";
 import { insertAssessmentSchema, insertConsultationSchema, insertProfessionalSchema } from "@shared/schema";
 import { analyzeMentalHealth, generateResponse } from "./openai";
 import { ZodError } from "zod";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express) {
+  // Set up authentication routes
+  setupAuth(app);
+
   const httpServer = createServer(app);
 
   // Existing chat routes
@@ -32,6 +36,7 @@ export async function registerRoutes(app: Express) {
           phq9: assessment.phq9Responses || {},
         });
         assessment.aiAnalysis = analysis.summary;
+        assessment.consultationRecommended = analysis.needsConsultation;
       }
 
       const result = await storage.createAssessment(assessment);

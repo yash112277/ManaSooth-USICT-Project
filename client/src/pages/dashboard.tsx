@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { Line } from "recharts";
 import { format } from "date-fns";
-import { Calendar, Clock, AlertTriangle, CheckCircle, FileText } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, FileText } from "lucide-react";
 
 export default function Dashboard() {
   const { user, updateLanguageMutation } = useAuth();
-  const [_, navigate] = useNavigate();
+  const [_, setLocation] = useLocation();
 
   const { data: assessments } = useQuery<Assessment[]>({
     queryKey: ["/api/users", user?.id, "assessments"],
@@ -41,7 +41,7 @@ export default function Dashboard() {
           Welcome, {user?.username}
         </h1>
         <Select
-          value={user?.preferredLanguage}
+          defaultValue={user?.preferredLanguage}
           onValueChange={(language) => updateLanguageMutation.mutate(language)}
         >
           <SelectTrigger className="w-[200px]">
@@ -91,7 +91,7 @@ export default function Dashboard() {
                   </div>
                 )}
                 <Button
-                  onClick={() => navigate("/consultation")}
+                  onClick={() => setLocation("/consultation")}
                   className="w-full"
                   variant={needsConsultation ? "default" : "secondary"}
                 >
@@ -102,7 +102,7 @@ export default function Dashboard() {
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground mb-4">No assessments yet</p>
-                <Button onClick={() => navigate("/assessment")}>
+                <Button onClick={() => setLocation("/assessment")}>
                   Take Assessment
                 </Button>
               </div>
@@ -151,9 +151,24 @@ export default function Dashboard() {
                 data={assessmentData}
                 margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
               >
-                <Line type="monotone" dataKey="who5" stroke="hsl(var(--primary))" />
-                <Line type="monotone" dataKey="gad7" stroke="hsl(var(--destructive))" />
-                <Line type="monotone" dataKey="phq9" stroke="hsl(var(--muted-foreground))" />
+                <Line
+                  type="monotone"
+                  dataKey="who5"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="gad7"
+                  stroke="hsl(var(--destructive))"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="phq9"
+                  stroke="hsl(var(--muted-foreground))"
+                  strokeWidth={2}
+                />
               </Line>
             </div>
           ) : (

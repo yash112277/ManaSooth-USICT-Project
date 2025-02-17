@@ -52,10 +52,10 @@ PHQ-9 Score: ${scores.phq9} (${interpretPHQ9(scores.phq9)})`;
     const messages = [
       { role: "system", content: systemMessage },
       ...history.map((msg) => ({
-        role: msg.role,
+        role: msg.role as "user" | "assistant",
         content: msg.content,
       })),
-      { role: "user", content: message },
+      { role: "user" as const, content: message },
     ];
 
     const response = await openai.chat.completions.create({
@@ -107,14 +107,14 @@ function interpretPHQ9(score: number): string {
 
 export async function analyzeMentalHealth(
   responses: QuestionnaireResponse
-): Promise<{ score: number; summary: string }> {
+): Promise<{ score: number; summary: string; needsConsultation: boolean }> {
   try {
     const scores = calculateScores(responses);
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
-          role: "system",
+          role: "system" as const,
           content: `Analyze the mental health assessment scores and provide a comprehensive summary. The scores are:
 WHO-5: ${scores.who5}/100 (${interpretWHO5(scores.who5)})
 GAD-7: ${scores.gad7}/21 (${interpretGAD7(scores.gad7)})
@@ -122,7 +122,8 @@ PHQ-9: ${scores.phq9}/27 (${interpretPHQ9(scores.phq9)})
 
 Provide a JSON response with:
 - score: overall well-being score (0-100)
-- summary: detailed analysis of the results with recommendations`,
+- summary: detailed analysis of the results with recommendations
+- needsConsultation: boolean indicating if professional consultation is recommended based on severity of scores`,
         },
       ],
       response_format: { type: "json_object" },
@@ -133,7 +134,7 @@ Provide a JSON response with:
       throw new Error("Empty response from OpenAI");
     }
 
-    return JSON.parse(content) as { score: number; summary: string };
+    return JSON.parse(content) as { score: number; summary: string; needsConsultation: boolean };
   } catch (err) {
     const error = err as Error;
     throw new Error("Failed to analyze responses: " + error.message);

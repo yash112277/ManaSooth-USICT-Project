@@ -7,12 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Professional, Consultation } from "@shared/schema";
+import { useLocation } from "wouter";
 
 export default function ConsultationBooking() {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>();
   const [selectedProfessional, setSelectedProfessional] = useState<number>();
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
 
   const { data: professionals } = useQuery<Professional[]>({
     queryKey: ["/api/professionals"],
@@ -33,6 +35,7 @@ export default function ConsultationBooking() {
         title: "Consultation Booked",
         description: "Your consultation has been scheduled successfully.",
       });
+      setLocation("/dashboard");
     },
     onError: () => {
       toast({
