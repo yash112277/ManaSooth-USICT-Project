@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useLocation, Link } from "wouter";
-import { Home, ArrowLeft, User } from "lucide-react";
+import { Home, ArrowLeft, User, Brain } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function Navigation() {
@@ -14,7 +14,7 @@ export function Navigation() {
   return (
     <nav className="bg-background border-b">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           {location !== "/" && (
             <>
               <Button variant="ghost" size="icon" onClick={goBack}>
@@ -27,6 +27,14 @@ export function Navigation() {
               </Link>
             </>
           )}
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <Brain className="h-6 w-6 text-primary" />
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                MANASOOTH
+              </span>
+            </div>
+          </Link>
         </div>
         <div className="flex items-center gap-4">
           {user ? (
