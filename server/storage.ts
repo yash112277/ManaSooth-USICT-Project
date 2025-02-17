@@ -1,10 +1,25 @@
+import { users, type User, type InsertUser } from "@shared/schema";
 import { assessments, type Assessment, type InsertAssessment } from "@shared/schema";
 import { consultations, type Consultation, type InsertConsultation } from "@shared/schema";
 import { professionals, type Professional, type InsertProfessional } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte } from "drizzle-orm";
+import connectPg from "connect-pg-simple";
+import session from "express-session";
+import { pool } from "./db";
+
+const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
+  // Session store
+  sessionStore: session.Store;
+
+  // User methods
+  createUser(user: InsertUser): Promise<User>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  updateUserLanguage(id: number, language: string): Promise<User>;
+
   // Assessment methods
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   getAssessment(id: number): Promise<Assessment | undefined>;
@@ -25,6 +40,49 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+
+  constructor() {
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true,
+    });
+  }
+
+  // User methods
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db
+      .insert(users)
+      .values(user)
+      .returning();
+    return newUser;
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
+    return user;
+  }
+
+  async updateUserLanguage(id: number, language: string): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ preferredLanguage: language })
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
   // Assessment methods
   async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
     const [newAssessment] = await db

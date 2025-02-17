@@ -1,6 +1,15 @@
-import { pgTable, text, serial, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, jsonb, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull(),
+  preferredLanguage: text("preferred_language").default("en"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
@@ -13,6 +22,7 @@ export const assessments = pgTable("assessments", {
   phq9Score: integer("phq9_score"),
   conversationResponses: jsonb("conversation_responses").$type<Message[]>(),
   aiAnalysis: text("ai_analysis"),
+  consultationRecommended: boolean("consultation_recommended").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -37,6 +47,18 @@ export const professionals = pgTable("professionals", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Auth schemas
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+// Assessment schemas
 export const insertAssessmentSchema = createInsertSchema(assessments).omit({
   id: true,
   createdAt: true,
@@ -52,6 +74,8 @@ export const insertProfessionalSchema = createInsertSchema(professionals).omit({
   createdAt: true,
 });
 
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
 export type Assessment = typeof assessments.$inferSelect;
 export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
@@ -67,7 +91,7 @@ export const messageSchema = z.object({
 
 export type Message = z.infer<typeof messageSchema>;
 
-// Questionnaire schemas
+// Questionnaire schemas remain unchanged
 export const who5Questions = [
   "I have felt cheerful and in good spirits",
   "I have felt calm and relaxed",
@@ -115,3 +139,15 @@ export type AvailabilitySlot = {
   startTime: string;
   endTime: string;
 };
+
+// Language support
+export const supportedLanguages = [
+  { code: "en", name: "English" },
+  { code: "hi", name: "हिंदी" },
+  { code: "bn", name: "বাংলা" },
+  { code: "te", name: "తెలుగు" },
+  { code: "ta", name: "தமிழ்" },
+  { code: "mr", name: "मराठी" },
+] as const;
+
+export type LanguageCode = typeof supportedLanguages[number]["code"];
