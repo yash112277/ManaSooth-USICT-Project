@@ -1,4 +1,6 @@
 import { assessments, type Assessment, type InsertAssessment } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
@@ -6,37 +8,29 @@ export interface IStorage {
   getAssessmentsByUserId(userId: string): Promise<Assessment[]>;
 }
 
-export class MemStorage implements IStorage {
-  private assessments: Map<number, Assessment>;
-  private currentId: number;
-
-  constructor() {
-    this.assessments = new Map();
-    this.currentId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
-    const id = this.currentId++;
-    const newAssessment: Assessment = {
-      ...assessment,
-      id,
-      createdAt: new Date(),
-      summary: null, // Explicitly set to null initially
-      score: null, // Explicitly set to null initially
-    };
-    this.assessments.set(id, newAssessment);
+    const [newAssessment] = await db
+      .insert(assessments)
+      .values(assessment)
+      .returning();
     return newAssessment;
   }
 
   async getAssessment(id: number): Promise<Assessment | undefined> {
-    return this.assessments.get(id);
+    const [assessment] = await db
+      .select()
+      .from(assessments)
+      .where(eq(assessments.id, id));
+    return assessment;
   }
 
   async getAssessmentsByUserId(userId: string): Promise<Assessment[]> {
-    return Array.from(this.assessments.values()).filter(
-      (assessment) => assessment.userId === userId
-    );
+    return await db
+      .select()
+      .from(assessments)
+      .where(eq(assessments.userId, userId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
