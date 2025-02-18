@@ -21,6 +21,7 @@ export default defineConfig({
         ]
       : []),
   ],
+  base: 'ManaSooth-USICT-Project',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
