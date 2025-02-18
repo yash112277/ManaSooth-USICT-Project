@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, type QuestionnaireResponse } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "@/hooks/lib/queryClient";
 import { Questionnaire } from "@/components/Questionnaire";
 
 type AssessmentStage = "questionnaire" | "scores" | "conversation";

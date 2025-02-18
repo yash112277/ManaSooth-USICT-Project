@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useContext } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { User, InsertUser, supportedLanguages } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/hooks/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 type LoginData = {
